@@ -1,0 +1,196 @@
+#Exemplos
+
+##Mensagem de erro
+{
+  "message": "Invalid credentials"
+}
+
+########################################
+##(POST) api/v1/authenticate - 200
+{
+  "token": "token",
+  "user": {
+    "user_id": 1,
+    "name": "Admin",
+    "email": "admin@vibbra.com.br",
+    "login": "admin"
+  }
+}
+
+########################################
+##(GET) api/v1/projects - 200
+[
+  {
+    "project_id": 5,
+    "title": "A project",
+    "description": "A",
+    "users": [
+      {
+        "user_id": 6,
+        "name": "business",
+        "email": "business@vibbra.com.br",
+        "login": "business"
+      }
+    ]
+  },
+  {
+    "project_id": 6,
+    "title": "B project",
+    "description": "B",
+    "users": [
+      {
+        "user_id": 6,
+        "name": "business",
+        "email": "business@vibbra.com.br",
+        "login": "business"
+      }
+    ]
+  }
+]
+
+##(GET) api/v1/projects/{project_id} - 200
+{
+  "project_id": 5,
+  "title": "A project",
+  "description": "A",
+  "users": [
+    {
+      "user_id": 6,
+      "name": "business",
+      "email": "business@vibbra.com.br",
+      "login": "business"
+    }
+  ]
+}
+
+##(POST) api/v1/projects - 200
+{
+  "project_id": 16,
+  "title": "doc",
+  "description": "doc",
+  "users": [
+    {
+      "user_id": 6,
+      "name": "business",
+      "email": "business@vibbra.com.br",
+      "login": "business"
+    }
+  ]
+}
+
+##(PUT) api/v1/projects/{project_id} - 200
+{
+  "project_id": 16,
+  "title": "documentation",
+  "description": "documentation",
+  "users": [
+    {
+      "user_id": 5,
+      "name": "dev",
+      "email": "dev@vibbra.com.br",
+      "login": "dev"
+    }
+  ]
+}
+
+########################################
+##(POST) api/v1/times - 200
+{
+  "time_id": 12,
+  "project": {
+    "project_id": 5,
+    "title": "A project",
+    "description": "A"
+  },
+  "user": {
+    "user_id": 6,
+    "name": "business",
+    "email": "business@vibbra.com.br",
+    "login": "business"
+  },
+  "started_at": "2023-04-11T22:35:35.045Z",
+  "ended_at": "2023-04-11T22:35:35.045Z"
+}
+
+##(GET) api/v1/times/{project_id} - 200
+{
+  "time": [
+    {
+      "time_id": 11,
+      "project": {
+        "project_id": 5,
+        "title": "A project",
+        "description": "A"
+      },
+      "user": {
+        "user_id": 6,
+        "name": "business",
+        "email": "business@vibbra.com.br",
+        "login": "business"
+      },
+      "started_at": "2023-04-11T22:17:17.765",
+      "ended_at": "2023-04-11T22:17:17.765"
+    },
+    {
+      "time_id": 12,
+      "project": {
+        "project_id": 5,
+        "title": "A project",
+        "description": "A"
+      },
+      "user": {
+        "user_id": 6,
+        "name": "business",
+        "email": "business@vibbra.com.br",
+        "login": "business"
+      },
+      "started_at": "2023-04-11T22:35:35.045",
+      "ended_at": "2023-04-11T22:35:35.045"
+    }
+  ]
+}
+
+##(PUT) api/v1/times/{time_id} - 200
+{
+  "project_id": 5,
+  "user_id": 6,
+  "started_at": "2023-04-12T22:39:55.745Z",
+  "ended_at": "2023-04-12T22:39:55.745Z"
+}
+
+########################################
+## (GET) api/v1/users/{ID} - 200
+{
+  "projects": [
+    {
+      "project_id": 15,
+      "title": "F project",
+      "description": "F"
+    },
+    {
+      "project_id": 16,
+      "title": "documentation",
+      "description": "documentation"
+    }
+  ],
+  "user_id": 5,
+  "name": "dev",
+  "email": "dev@vibbra.com.br",
+  "login": "dev"
+}
+
+## (PUT) api/v1/users/{ID} - 200
+{
+  "user_id": 5,
+  "name": "developer",
+  "email": "developer",
+  "login": "developer@vibbra.com.br"
+}
+
+## (POST) api/v1/users - 200
+{
+  "user_id": 14,
+  "name": "manager",
+  "email": "manager@vibbra.com.br",
+  "login": "manager"
+}

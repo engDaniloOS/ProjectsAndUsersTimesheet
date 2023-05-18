@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
+WORKDIR /app
+
+COPY ./TimeSheet .
+RUN dotnet restore
+RUN dotnet build --configuration Release
+
+CMD ["dotnet", "run", "--urls", "http://0.0.0.0:80"]
+
+EXPOSE 80
