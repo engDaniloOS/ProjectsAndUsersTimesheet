@@ -2,6 +2,8 @@
 
 APIs para lançamento de horas de usuários em projetos que atuaram.
 
+### Projeto criado manualmente, sem uso de IA
+
 ## Activities
 
 - [x] Estimativa de horas;
