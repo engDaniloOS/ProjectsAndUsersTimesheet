@@ -90,3 +90,39 @@ admin ─► authenticate ─► (token) ─► users / projects ─► times (v
 - **Credential**: par login/senha de um usuário.
 - **WorkTime / "time"**: lançamento de horas (intervalo início–fim) de um usuário em um projeto.
 - **Project**: projeto com título, descrição e usuários participantes.
+
+## 10. Decisões de produto (entrevista de 2026-11-11)
+
+Decisões do responsável pelo sistema. São **requisitos-alvo**: **ainda não implementados** no código, que continua conforme descrito nas seções 1–9.
+
+| # | Tema | Decisão |
+|---|---|---|
+| D1 | Contexto | Desafio técnico/portfólio; sem usuários reais nem previsão de produção |
+| D2 | Permissões | Acesso aberto: qualquer usuário autenticado pode acessar/editar qualquer dado (sem papéis) |
+| D3 | Validação de horas | `ended_at > started_at`; sem sobreposição de intervalos do mesmo usuário; sem datas futuras; máximo de **8h somadas por dia** por usuário |
+| D4 | Novas funcionalidades | Totais e relatórios; exclusão; listagem de usuários e filtros |
+| D5 | Exclusão | **Em cascata**: apagar usuário ou projeto remove também as horas lançadas associadas |
+| D6 | Fuso horário | Horário local do servidor (sem conversão para UTC) |
+| D7 | Unicidade | Login e e-mail únicos; duplicidade → `409 Conflict`; entradas inválidas → `400` com mensagem clara |
+| D8 | Contrato | Pode ser corrigido na própria v1, aceitando quebra de compatibilidade (sem clientes externos) |
+| D9 | Segurança | Apenas documentar como limitação conhecida (ver [Arquitetura §8](arquitetura-do-sistema.md#8-riscos-técnicos-acoplamentos-e-violações)) |
+| D10 | Plataforma | Migrar para .NET 10 (ver [Arquitetura §13](arquitetura-do-sistema.md#13-decisões-técnicas-e-backlog-de-especificações)) |
+
+Efeitos sobre as seções anteriores: o "Fora do escopo atual" da seção 2 (totais/relatórios, exclusão, listagem de usuários) passa a ser **escopo planejado**. A ausência de papéis (seção 3) é uma decisão (D2), não uma pendência.
+
+## 11. Lacunas abertas (requerem decisão antes de especificar)
+
+### Negócio
+| # | Pergunta | Impacto |
+|---|---|---|
+| N1 | A regra de não sobreposição vale entre projetos diferentes do mesmo usuário ou só dentro do mesmo projeto? Vale também na edição? | Define a consulta de validação e o `PUT /times/{time_id}` |
+| N2 | O "dia" do limite de 8h é a data de `started_at`? Lançamento que cruza a meia-noite conta inteiro no dia de início ou dividido? | Algoritmo da regra D3 |
+| N3 | Quais totais/relatórios (por projeto, usuário, período) e em qual formato (JSON/CSV)? | Novos endpoints e DTOs |
+| N4 | Quais filtros, paginação padrão e ordenação nas listagens? | Contrato das listagens |
+| N5 | A unicidade de login/e-mail diferencia maiúsculas/minúsculas? O `admin` seed segue a regra? | Índices e comparação |
+| N6 | Quem pode excluir? Pode excluir a si próprio ou o `admin`? O que ocorre com a `Credential` do usuário excluído (hoje a FK `User→Credentials` é `Restrict`, deixaria registro órfão)? | Regra de exclusão (D5) |
+| N7 | Na edição de horas, revalidar vínculo usuário↔projeto, sobreposição e limite diário? | Consistência com a criação |
+
+## 12. Premissas e hipóteses vigentes
+- **Hipótese**: o domínio `vibbra.com.br` do admin e o formato do README indicam desafio de processo seletivo (compatível com D1; não confirmado no código).
+- **Hipótese**: dado D6, no Docker o "horário local" será o fuso do container (normalmente UTC).

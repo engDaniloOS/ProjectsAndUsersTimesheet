@@ -2,6 +2,7 @@
 
 > Documento oficial de arquitetura do **TimeSheet API**. Base para Spec-Driven Development.
 > Gerado a partir da análise do código em 2026-11-11 (commit base `ca462d7`).
+> Seção 13 (decisões e backlog) refletem requisitos-alvo ainda não implementados.
 > Convenção: afirmações sem marcação são verificáveis no código; inferências estão marcadas como **Hipótese**.
 > Documento complementar: [Objetivo do Sistema](objetivo-do-sistema.md).
 
@@ -254,3 +255,40 @@ Regras de **meta** (alvo) para novas features, de forma a não aumentar a dívid
 - `Domain/Dtos/ProjectOutDto.Error`, `UserWithProjectsOutDto` (via herança): `Error` existe, mas só é preenchido em alguns caminhos.
 - `appsettings.Development.json`: contém apenas `Logging` (sem sobrescrever outras chaves).
 - Nenhum módulo de código completo está órfão: todos os serviços/repositórios/converters são registrados em DI e alcançáveis por um controller.
+
+## 13. Decisões técnicas e backlog de especificações
+
+Decisões de 2026-11-11 (origem: entrevista; ver [Objetivo §10](objetivo-do-sistema.md#10-decisões-de-produto-entrevista-de-2026-11-11)). **Nenhuma está implementada**; as seções 1–13 descrevem o código atual.
+
+### 13.1 Decisões
+| # | Decisão | Itens do §8 afetados |
+|---|---|---|
+| T1 | Migrar para **.NET 10** (runtime, pacotes, Dockerfile) | Dependências (§7), O3, O5 |
+| T2 | Fuso = horário local do servidor; `DateTime.Now` permanece | C9 (passa a ser comportamento aceito) |
+| T3 | Login e e-mail únicos (índice único no banco + `409`) | C1, C5 |
+| T4 | Validações de horas: `Start < End`, sem sobreposição, sem datas futuras, ≤ 8h/dia por usuário | C3 |
+| T5 | Exclusão em cascata (já é o comportamento das FKs de `WorkTime` e `ProjectUser`) | Migrations |
+| T6 | Contrato da v1 pode ser corrigido com quebra | C10, C4 |
+| T7 | Dívidas de segurança **apenas documentadas** (S1–S6 permanecem) | S1–S6 |
+| T8 | Sem papéis: não implementar autorização por recurso | S4 (aceito) |
+
+### 13.2 Backlog de especificações (candidatas a specs SDD)
+1. **Validações de lançamento de horas** (T4): regras, mensagens, códigos HTTP e aplicação em `POST` e `PUT /times`. Depende de N1, N2, N7.
+2. **Unicidade de usuário** (T3): migração com índices únicos; `409`; tratamento do seed (conflita com o `admin` duplicado do C1 → requer seed idempotente ou limpeza prévia). Depende de N5.
+3. **Exclusão** de usuário/projeto/lançamento (`DELETE`): cascata (T5), tratamento da `Credential` órfã (N6).
+4. **Listagem de usuários e filtros/paginação** (N4).
+5. **Totais e relatórios** (N3).
+6. **Correção do contrato v1** (T6): `201` em criação, lista vazia como `200 []`, formato uniforme de listas (`GET /times` retorna `{"time":[...]}`; `GET /projects` retorna array), renomear `ProjectDto.user_id` (lista) se desejado, e atualizar `openapi30.json`/`response_examples.txt`.
+7. **Migração para .NET 10** (T1): avaliar *minimal hosting* (remover `Startup`), EF Core 10 (regerar/ajustar migração e snapshot), `JwtBearer`, AutoMapper e Swashbuckle compatíveis, imagens Docker `sdk/aspnet` 10, e a viabilidade do banco em arquivo LocalDB.
+8. **Testes automatizados**: projeto de testes na solução (framework a definir — pendente).
+9. **Logging** com `ILogger` em vez de `Console.WriteLine` (pendente de decisão).
+
+### 13.3 Lacunas técnicas abertas
+| # | Pergunta |
+|---|---|
+| Q1 | Migrar junto para *minimal hosting* ou manter `Program`/`Startup`? |
+| Q2 | O EF Core 10 exige regerar a migração `Initial`, ou apenas atualizar o snapshot? (**Hipótese**: ajustar o snapshot basta; verificar na migração) |
+| Q3 | Como aplicar o seed idempotente (T3 exige) sem violar a decisão T7 de não alterar segurança? |
+| Q4 | Framework de testes e cobertura mínima |
+| Q5 | `Console.WriteLine` permanece ou passa a `ILogger`? |
+| Q6 | Banco em arquivo (LocalDB, só Windows) continua suportado após a migração? |
