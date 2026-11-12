@@ -56,6 +56,46 @@ APIs para lançamento de horas de usuários em projetos que atuaram.
 - Nesse cenário recomendo utilizar o Postman para realizar requisições aos endpoints. Não esquecer de adicionar um cabeçalho com a chave "Authorization", e valor "bearer token";
 - A aplicação poderá ser acessada no endpoint "http://localhost:5000/";
 
+
 ## Endpoints
-A documentação dos endpoints pode ser acessada no arquivo: openapi30.json
-Os exemplos de response das requisições podem ser acessados no arquivo: response_examples.txt
+A documentação completa dos endpoints está em `openapi30.json`; exemplos de resposta em `response_examples.txt`. Todos sob `api/v1` e autenticados por `Authorization: Bearer <token>`, exceto o login.
+
+| Recurso | Endpoints |
+|---|---|
+| Autenticação | `POST /authenticate` (token JWT, expira em 15 min) |
+| Usuários | `GET /users/{ID}`, `POST /users`, `PUT /users/{ID}` |
+| Projetos | `GET /projects`, `GET /projects/{project_id}`, `POST /projects`, `PUT /projects/{project_id}` |
+| Horas | `POST /times`, `GET /times/{project_id}`, `PUT /times/{time_id}` |
+
+Convenção de respostas: `400` com `{"message": ...}` em erro, `404` para recurso inexistente ou lista vazia, `401` para credencial inválida, `200` nos demais casos (inclusive criações).
+
+Regra de negócio principal: um lançamento de horas só é aceito se o usuário pertence ao projeto (validado na criação, **não** na edição). Editar um projeto substitui toda a lista de usuários vinculados.
+
+## Arquitetura
+API monolítica em um único projeto (`TimeSheet/TimeSheet`), com camadas separadas por pastas:
+
+| Pasta | Responsabilidade |
+|---|---|
+| `Configuration` | Composition root: DI, JWT, EF Core, AutoMapper, Swagger; migração e seed do admin no startup |
+| `Connectors/Controllers` | Endpoints HTTP; traduzem o resultado do serviço em status HTTP |
+| `Domain` | Serviços (regras de negócio), `UseCases` (interfaces), `Converters` (DTO ↔ entidade) e `Dtos` (contrato JSON em snake_case) |
+| `DataProviders/Repository` | `DbContext` e repositórios (EF Core, SQL Server); banco local em `Infra/TimeSheet.mdf` |
+| `Models` | Entidades: `User`, `Credential`, `Project`, `WorkTime` (User ⇄ Project é N:N) |
+| `Migrations` | Migração EF `Initial` (gerada, não editar) |
+
+Fluxo: `Controller → UseCase (interface) → Service → Repository → Context`, com `Converter`/DTO na fronteira. Os serviços não lançam exceção: devolvem um DTO com o campo `Error` preenchido.
+
+Para adicionar uma funcionalidade: use case em `Domain/UseCases` → método no serviço → endpoint no controller → DTOs e `CreateMap` em `MapperProfile` → registro em `DependencyInjectionServiceConfig` (se novo serviço) → migração EF se o schema mudar.
+
+## Dívidas técnicas conhecidas
+- **Segurança**: senhas em texto puro; `SecurityKey` do JWT e senha `sa` versionadas; sem papéis/autorização por recurso (qualquer usuário autenticado edita qualquer dado); sem HTTPS redirection.
+- **Seed do admin não é idempotente**: um novo `admin` é inserido a cada inicialização da aplicação (não só na primeira).
+- **Arquitetura**: os contratos de repositório ficam em `DataProviders` e o `Domain` depende deles (inversão de dependência violada); entidades EF são usadas como modelo de domínio.
+- **Validação**: só `CredentialDto` e `WorkTimeDto` têm `[Required]`; não há checagem de `ended_at > started_at`, nem de unicidade de login/e-mail; entradas inválidas viram `400` por exceção capturada.
+- **Nomes**: `IProjectRepository.EditUser` edita projeto; classe `WortTimeConverter` com typo; `IGetWorkTimeById` é uma interface vazia.
+- **Docker**: `ConnectionStrings__MyDatabase` no `docker-compose.yml` não é lida pelo código (a app usa `ConnectionStrings:Docker`); `dockerfile_old` não é usado; `ASPNETCORE_ENVIRONMENT` não é definido, então o Swagger (só em `Development`) provavelmente não fica disponível no container (hipótese).
+- **Outros**: .NET 5 fora de suporte; logs via `Console.WriteLine`; sem testes automatizados.
+
+## Documentação técnica detalhada
+* [Arquitetura do Sistema](docs/arquitetura-do-sistema.md)
+* [Objetivo do Sistema](docs/objetivo-do-sistema.md)
