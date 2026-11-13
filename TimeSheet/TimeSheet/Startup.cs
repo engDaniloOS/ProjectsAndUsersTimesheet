@@ -22,6 +22,8 @@ namespace TimeSheet
 
             services.AddControllers();
 
+            ApiBehaviorServiceConfig.Configure(services);
+
             SwaggerServiceConfig.Configure(services);
 
             DatabaseServiceConfig.Configure(services, Configuration);

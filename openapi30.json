@@ -295,8 +295,19 @@
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input (missing/invalid fields or blank password)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorDto" } } }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "409": {
+            "description": "Login or email already in use",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorDto" } } }
           }
-        }
+          }
       }
     },
     "/api/v1/users": {
@@ -326,6 +337,14 @@
         "responses": {
           "200": {
             "description": "Success"
+          },
+          "400": {
+            "description": "Invalid input (missing/invalid fields or missing password)",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorDto" } } }
+          },
+          "409": {
+            "description": "Login or email already in use",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ErrorDto" } } }
           }
         }
       }
@@ -400,23 +419,42 @@
         "additionalProperties": false
       },
       "UserDto": {
+        "required": [
+          "email",
+          "login",
+          "name"
+        ],
         "type": "object",
         "properties": {
           "name": {
-            "type": "string",
-            "nullable": true
+            "maxLength": 450,
+            "type": "string"
           },
           "email": {
+            "maxLength": 450,
             "type": "string",
-            "nullable": true
+            "format": "email",
+            "description": "Unico (nao diferencia maiusculas de minusculas)."
           },
           "login": {
+            "maxLength": 450,
             "type": "string",
-            "nullable": true
+            "description": "Unico (nao diferencia maiusculas de minusculas)."
           },
           "password": {
+            "minLength": 1,
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "Obrigatoria no POST. No PUT e opcional: omitida mantem a senha atual; se informada nao pode ser vazia ou so espacos."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ErrorDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
           }
         },
         "additionalProperties": false

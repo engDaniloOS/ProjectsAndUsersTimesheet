@@ -2,8 +2,8 @@ FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build-env
 WORKDIR /app
 
 COPY . .
-RUN dotnet restore
-RUN dotnet publish -c Release -o out
+RUN dotnet restore TimeSheet/TimeSheet.csproj
+RUN dotnet publish TimeSheet/TimeSheet.csproj -c Release -o out --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:5.0
 WORKDIR /app

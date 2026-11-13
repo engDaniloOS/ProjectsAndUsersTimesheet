@@ -35,6 +35,9 @@ namespace TimeSheet.Connectors.Controllers
         {
             var user = await _service.SaveNewUser(userDto);
 
+            if (user.IsConflict)
+                return Conflict(new ErrorDto { Message = user.Error });
+
             if (!string.IsNullOrWhiteSpace(user.Error))
                 return BadRequest(new ErrorDto { Message = user.Error });
 
@@ -46,6 +49,9 @@ namespace TimeSheet.Connectors.Controllers
         public async Task<IActionResult> EditUser([FromRoute(Name = "ID")] int userId, [FromBody] UserDto userDto)
         {
             var user = await _service.EditUser(userId, userDto);
+
+            if (user.IsConflict)
+                return Conflict(new ErrorDto { Message = user.Error });
 
             if (!string.IsNullOrWhiteSpace(user.Error))
                 return BadRequest(new ErrorDto { Message = user.Error });

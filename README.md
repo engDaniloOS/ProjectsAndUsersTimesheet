@@ -39,6 +39,7 @@ APIs para lançamento de horas de usuários em projetos que atuaram.
 ## Testes
 * Ao ser executada pela primeira vez a aplicação irá construir as bases de dados, e independe da execução via docker ou local (arquivo de DB para ambientes windos);
 * **Na primeira execução o usuário administrador será criado, com as credenciais Login: "admin" e Password: "admin". Esse usuário poderá ser utilizado para autenticação e acesso as APIs.**
+* O usuário `admin` só é criado se ainda não existir (a verificação não diferencia maiúsculas de minúsculas), então reiniciar a aplicação não o duplica.
 
 ## Testes locais
 ### Para testar a aplicação localmente:
@@ -71,6 +72,14 @@ Convenção de respostas: `400` com `{"message": ...}` em erro, `404` para recur
 
 Regra de negócio principal: um lançamento de horas só é aceito se o usuário pertence ao projeto (validado na criação, **não** na edição). Editar um projeto substitui toda a lista de usuários vinculados.
 
+Usuários: `login` e `email` são únicos e **não diferenciam maiúsculas de minúsculas** (`Admin` = `admin`); duplicidade responde `409`. `name`, `email` e `login` são obrigatórios e `email` deve ser válido (`400`). `password` é obrigatória na criação e **opcional na edição** (omitida mantém a senha atual; em branco é rejeitada). Erros de validação de entrada usam o formato `{"message": ...}`.
+
+## Testes automatizados
+Projeto `TimeSheet/TimeSheet.Tests` (xUnit + NSubstitute; repositórios testados com SQLite em memória, sem Docker nem SQL Server). No diretório da solução: `dotnet test`. O projeto usa `RollForward=LatestMajor` para rodar em runtimes mais novos que o .NET 5.
+
+## Migração `UserUniqueLoginEmail`
+Cria índices únicos para login e e-mail. Antes disso ela **limpa os dados existentes**: preenche nulos com valores `unknown-<Id>`, mescla usuários duplicados (login ou e-mail, ignorando maiúsculas/minúsculas) mantendo o de menor `Id` — horas e vínculos com projetos são reatribuídos a ele — e remove credenciais sem usuário. Usuários distintos com o mesmo e-mail são unificados e o login descartado deixa de existir; o `Down()` não restaura esses dados. Faça backup do banco (ou do `.mdf`) antes de aplicar.
+
 ## Arquitetura
 API monolítica em um único projeto (`TimeSheet/TimeSheet`), com camadas separadas por pastas:
 
@@ -81,7 +90,7 @@ API monolítica em um único projeto (`TimeSheet/TimeSheet`), com camadas separa
 | `Domain` | Serviços (regras de negócio), `UseCases` (interfaces), `Converters` (DTO ↔ entidade) e `Dtos` (contrato JSON em snake_case) |
 | `DataProviders/Repository` | `DbContext` e repositórios (EF Core, SQL Server); banco local em `Infra/TimeSheet.mdf` |
 | `Models` | Entidades: `User`, `Credential`, `Project`, `WorkTime` (User ⇄ Project é N:N) |
-| `Migrations` | Migração EF `Initial` (gerada, não editar) |
+| `Migrations` | Migrações EF `Initial` e `UserUniqueLoginEmail` (geradas; a segunda inclui limpeza de dados) |
 
 Fluxo: `Controller → UseCase (interface) → Service → Repository → Context`, com `Converter`/DTO na fronteira. Os serviços não lançam exceção: devolvem um DTO com o campo `Error` preenchido.
 
@@ -89,9 +98,8 @@ Para adicionar uma funcionalidade: use case em `Domain/UseCases` → método no 
 
 ## Dívidas técnicas conhecidas
 - **Segurança**: senhas em texto puro; `SecurityKey` do JWT e senha `sa` versionadas; sem papéis/autorização por recurso (qualquer usuário autenticado edita qualquer dado); sem HTTPS redirection.
-- **Seed do admin não é idempotente**: um novo `admin` é inserido a cada inicialização da aplicação (não só na primeira).
 - **Arquitetura**: os contratos de repositório ficam em `DataProviders` e o `Domain` depende deles (inversão de dependência violada); entidades EF são usadas como modelo de domínio.
-- **Validação**: só `CredentialDto` e `WorkTimeDto` têm `[Required]`; não há checagem de `ended_at > started_at`, nem de unicidade de login/e-mail; entradas inválidas viram `400` por exceção capturada.
+- **Validação**: `UserDto`, `CredentialDto` e `WorkTimeDto` validam campos obrigatórios; `ProjectDto` ainda não. Não há checagem de `ended_at > started_at` nem de ids inexistentes em projetos. Mensagens de erro de exceções internas ainda são devolvidas ao cliente.
 - **Nomes**: `IProjectRepository.EditUser` edita projeto; classe `WortTimeConverter` com typo; `IGetWorkTimeById` é uma interface vazia.
 - **Docker**: `ConnectionStrings__MyDatabase` no `docker-compose.yml` não é lida pelo código (a app usa `ConnectionStrings:Docker`); `dockerfile_old` não é usado; `ASPNETCORE_ENVIRONMENT` não é definido, então o Swagger (só em `Development`) provavelmente não fica disponível no container (hipótese).
 - **Outros**: .NET 5 fora de suporte; logs via `Console.WriteLine`; sem testes automatizados.

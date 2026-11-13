@@ -168,7 +168,7 @@ Classificação: **[S]** segurança, **[A]** arquitetura, **[C]** correção/com
 - **[S2] Segredos versionados**: `SecurityKey` do JWT e senha `sa` do SQL Server estão em `appsettings.json` e `docker-compose.yml`.
 - **[S3] Usuário `admin/admin`** criado automaticamente (README documenta isso como funcionalidade).
 - **[S4] Sem autorização por recurso/papel**: qualquer usuário autenticado pode listar/editar qualquer usuário, projeto e lançamento de horas (`[Authorize]` sem policy; o JWT não carrega `user_id` nem papel — apenas `Name` e `Email`).
-- **[S5]** `Edit` de usuário sobrescreve `Credential.Password` com o valor do DTO (se `null`, grava `null`).
+- **[S5] (parcialmente resolvido em 2026-11-12: senha omitida na edição é mantida)**  `Edit` de usuário sobrescreve `Credential.Password` com o valor do DTO (se `null`, grava `null`).
 - **[S6] Sem HTTPS redirection** (`UseHttpsRedirection` comentado) e `AllowedHosts: *`.
 
 ### Arquitetura
@@ -179,14 +179,14 @@ Classificação: **[S]** segurança, **[A]** arquitetura, **[C]** correção/com
 - **[A5] Projeto único**: limites de camada não são impostos pelo compilador; qualquer `using` cruza fronteiras.
 - **[A6] `Configuration` conhece todas as camadas** (esperado em composition root, mas inclui regra: seed do admin em `DatabaseManagementService`).
 - **[A7] Duplicação do segredo JWT**: lido separadamente em `AuthenticatorServiceConfig` (validação) e `LoginService` (emissão).
-- **[A8] Sem testes automatizados** (item pendente no README; nenhum projeto de teste na solução).
+- **[A8] Cobertura de testes parcial (resolvido para a US2 em 2026-11-12: projeto `TimeSheet.Tests`, 62 testes; demais módulos sem testes)** (item pendente no README; nenhum projeto de teste na solução).
 
 ### Correção / comportamento
-- **[C1] Seed do admin não é idempotente**: `InitializeAdminUser` insere um novo `admin` **a cada inicialização** da aplicação (sem verificação de existência e sem índice único) → duplicatas em reinícios. O README afirma criação "na primeira execução".
+- ~~**[C1]** resolvido em 2026-11-12 (`EnsureAdminUser` idempotente).~~ **[C1 — histórico]** Seed do admin não é idempotente**: `InitializeAdminUser` insere um novo `admin` **a cada inicialização** da aplicação (sem verificação de existência e sem índice único) → duplicatas em reinícios. O README afirma criação "na primeira execução".
 - **[C2] Erros de entrada viram `400` via exceção**: ausência de validação (ex.: `ProjectDto.UsersIds == null`, `user_id` inexistente → `null` adicionado à coleção → exceção capturada). `UserDto`/`ProjectDto` não têm `[Required]`; só `CredentialDto` e `WorkTimeDto` têm.
 - **[C3] Validação assimétrica de lançamento de horas**: `Save` valida que o usuário pertence ao projeto; `EditWorkTime` **não** valida (permite trocar projeto/usuário livremente). Nenhum dos dois valida `Start < End`.
 - **[C4] `Save` retorna `WorkTimeOutDto` vazio para "projeto/usuário inválido"**, que o controller traduz em `404` — indistinguível de outros casos.
-- **[C5] Duplicidade de login/e-mail não é verificada** ao criar/editar usuário.
+- ~~**[C5]** resolvido em 2026-11-12 (índices únicos + 409).~~ **[C5 — histórico]** Duplicidade de login/e-mail não é verificada** ao criar/editar usuário.
 - **[C6] Nome enganoso**: `IProjectRepository.EditUser` edita um **projeto**.
 - **[C7] Tipos inconsistentes**: `WorkTime.Id` é `int`, mas `EditWorkTime` recebe `long`.
 - **[C8] `UserRepository.GetUserByCredentialId` não inclui `Credential`**; `LoginService` lê `user.Credential.Login` — depende de *lazy/relationship fix-up* do EF (**Hipótese**: funciona porque `Credential` já foi rastreada na consulta anterior do mesmo `DbContext` scoped; é frágil).

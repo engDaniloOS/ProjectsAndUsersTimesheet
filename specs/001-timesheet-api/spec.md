@@ -28,7 +28,7 @@ Um usuário informa login e senha e recebe um token temporário para usar nas de
 
 ---
 
-### User Story 2 - Gerenciar usuários (Priority: P1) **[PARCIAL]**
+### User Story 2 - Gerenciar usuários (Priority: P1) **[EXISTE]**
 
 Um usuário autenticado cadastra, consulta e edita usuários (nome, e-mail, login, senha). Consultar um usuário mostra também os projetos em que ele atua.
 
@@ -41,9 +41,9 @@ Um usuário autenticado cadastra, consulta e edita usuários (nome, e-mail, logi
 1. **Given** dados válidos, **When** cria um usuário, **Then** o usuário é retornado com seu identificador.
 2. **Given** um usuário existente, **When** é consultado, **Then** retorna seus dados e a lista de projetos.
 3. **Given** um id inexistente, **When** consulta ou edita, **Then** recebe "não encontrado".
-4. **Given** um login ou e-mail já usado por outro usuário, **When** cria ou edita um usuário com esse valor, **Then** a operação é rejeitada com conflito *(PLANEJADO — hoje não é verificado)*.
-5. **Given** `name`, `email` ou `login` ausentes (ou `email` malformado), ou `password` ausente **na criação**, **When** cria/edita, **Then** recebe erro de validação com mensagem clara *(PLANEJADO — hoje o resultado depende de exceção)*.
-6. **Given** um usuário existente, **When** edita sem informar `password`, **Then** a senha atual é mantida; se `password` for informada em branco, a edição é rejeitada *(PLANEJADO — hoje a senha é sobrescrita por `null`)*.
+4. **Given** um login ou e-mail já usado por outro usuário, **When** cria ou edita um usuário com esse valor, **Then** a operação é rejeitada com conflito.
+5. **Given** `name`, `email` ou `login` ausentes (ou `email` malformado), ou `password` ausente **na criação**, **When** cria/edita, **Then** recebe erro de validação com mensagem clara.
+6. **Given** um usuário existente, **When** edita sem informar `password`, **Then** a senha atual é mantida; se `password` for informada em branco, a edição é rejeitada.
 
 ---
 
@@ -174,9 +174,9 @@ Um usuário autenticado lista os usuários cadastrados, com filtros e paginaçã
 **Usuários e projetos**
 - **FR-004**: O sistema MUST permitir criar, consultar por id e editar usuários, e consultar os projetos de um usuário. **[EXISTE]**
 - **FR-005**: O sistema MUST permitir criar, listar, consultar e editar projetos, vinculando usuários; a edição substitui a lista de usuários. **[EXISTE]**
-- **FR-005a**: O sistema MUST garantir login único e e-mail único entre usuários, **sem diferenciar maiúsculas de minúsculas**, rejeitando duplicidade com conflito (D7, D12). **[PLANEJADO]**
-- **FR-005b**: O sistema MUST validar entradas obrigatórias (`password` obrigatória só na criação; opcional na edição, D11) e ids referenciados, respondendo com erro de validação e mensagem clara, sem depender de falhas internas. **[PLANEJADO]**
-- **FR-005c**: O sistema MUST criar o usuário `admin` inicial apenas se ainda não existir. **[PLANEJADO]**
+- **FR-005a**: O sistema MUST garantir login único e e-mail único entre usuários, **sem diferenciar maiúsculas de minúsculas**, rejeitando duplicidade com conflito (D7, D12). **[EXISTE]**
+- **FR-005b**: O sistema MUST validar entradas obrigatórias (`password` obrigatória só na criação; opcional na edição, D11) e ids referenciados, respondendo com erro de validação e mensagem clara, sem depender de falhas internas. **[PARCIAL]** *(usuários: implementado; validação de ids referenciados em projetos pertence à US3 e está pendente)*
+- **FR-005c**: O sistema MUST criar o usuário `admin` inicial apenas se ainda não existir. **[EXISTE]**
 
 **Lançamento de horas**
 - **FR-006**: O sistema MUST aceitar lançamento apenas para usuário vinculado ao projeto, na criação **e na edição**, distinguindo na resposta "recurso inexistente" de "usuário não pertence ao projeto". **[PARCIAL]**

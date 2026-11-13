@@ -1,7 +1,7 @@
 # Implementation Plan: User Story 2 — Gerenciar usuários
 
 **Branch**: `001-timesheet-api` | **Date**: 2026-11-12 | **Spec**: [spec.md](spec.md) (US2, FR-005a, FR-005b, FR-005c)
-**Status**: Pronto para implementação — decisões D11–D13 e T9–T12 confirmadas (ver [Objetivo §10.1](../../docs/objetivo-do-sistema.md), [Arquitetura §13.4](../../docs/arquitetura-do-sistema.md))
+**Status**: **Implementado em 2026-11-12** (62 testes automatizados passando; migração e API verificadas em SQL Server LocalDB). Pendências: ver "Resultado da implementação" no fim.
 **Revisão 2026-11-12**: D12 revisada — unicidade **sem** diferenciar maiúsculas/minúsculas (substitui a versão case-sensitive).
 
 ## Summary
@@ -188,3 +188,25 @@ Atualizar `openapi30.json` e `response_examples.txt`.
 - [ ] Dois startups seguidos ⇒ um único `admin`; criar/editar com login ou e-mail existente ⇒ `409`; entradas inválidas ⇒ `400` com `message`; `PUT` sem `password` mantém a senha.
 - [ ] Migração aplica em banco novo e na cópia do `.mdf` com dados sujos.
 - [ ] `openapi30.json`, `response_examples.txt`, README, `docs/` e `spec.md` atualizados.
+
+## Resultado da implementação (2026-11-12)
+
+Seguida a ordem TDD: testes escritos primeiro (46 de 62 falhando com assinaturas mínimas em produção), depois implementação até 62/62 verdes.
+
+**Entregue**: `TimeSheet.Tests` (xUnit 2.4.2, NSubstitute 5.1.0, EF Core Sqlite 5.0.17); `UserDto` com validação; `ApiBehaviorServiceConfig` (400 com `message`); `UserService` (senha obrigatória na criação, conflito 409, ordem 404 → 400 → 409); `UserRepository` (`ExistsLogin/ExistsEmail`, senha opcional na edição, tradução de violação de unicidade); `Context` (login/e-mail/nome obrigatórios, `MaxLength(450)`, índices únicos, collation `CI` explícita só em SQL Server); `DatabaseManagementService.EnsureAdminUser` idempotente; migração `UserUniqueLoginEmail` com limpeza de dados; `openapi30.json`, `response_examples.txt`, README e docs atualizados.
+
+**Verificação manual executada** (LocalDB, banco descartável, já removido):
+- Migração aplicada sobre dados sujos (3 variações de `admin`, e-mail duplicado em outra caixa, nulos, credencial órfã, horas e vínculos nos duplicados): sobraram os usuários 1, 4 e 6, horas e vínculos reatribuídos, colunas `NOT NULL` com collation `SQL_Latin1_General_CP1_CI_AS`, índices únicos ativos e inserções duplicadas (`ADMIN`) rejeitadas pelo banco.
+- API ponta a ponta contra esse banco: `409` (login e e-mail em outra caixa), `400` com `message` (campos ausentes, e-mail inválido, senha em branco), `PUT` sem senha preserva a senha (login com a antiga continua válido), `404` para id inexistente mesmo com login existente, `200` ao manter os próprios login/e-mail em outra caixa, `401` sem token, e dois reinícios mantêm um único `admin`.
+
+**Desvios em relação ao plano**
+- O `TimeSheet.Tests` mira `net5.0` com `RollForward=LatestMajor`, pois só há runtime .NET 10 instalado nesta máquina.
+- O `dockerfile` passou a restaurar/publicar `TimeSheet/TimeSheet.csproj` explicitamente; sem isso `dotnet publish` na solução incluiria o projeto de testes. **Não foi testado o build Docker.**
+- O `.mdf` versionado **não** foi migrado nem alterado; a verificação usou um banco criado para o teste.
+
+**Não verificado**
+- O caminho de corrida (duas gravações simultâneas) que depende de `SqlException` 2601/2627 traduzido em `UniqueConstraintViolationException`: o serviço é testado com a exceção simulada e o banco real rejeitou a duplicata, mas a tradução em si não foi exercitada com concorrência real.
+- `GET/PUT` de usuário inexistente retorna `404` com corpo `ProblemDetails` (comportamento do ASP.NET para `NotFound()` sem corpo), não `ErrorDto`; é anterior a este trabalho e não foi alterado.
+- A aplicação foi executada em runtime .NET 10 (roll-forward), não no .NET 5.
+
+**Follow-ups**: mensagens que expõem `ex.Message` ao cliente (SC-005); validação de `ProjectDto` (US3); `TimeSheet.Tests` ainda cobre apenas a US2.

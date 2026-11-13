@@ -18,5 +18,8 @@ namespace TimeSheet.Domain.Dtos
 
         [JsonIgnore]
         public string Error { get; set; }
+
+        [JsonIgnore]
+        public bool IsConflict { get; set; }
     }
 }

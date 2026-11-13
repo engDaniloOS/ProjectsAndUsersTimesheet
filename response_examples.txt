@@ -194,3 +194,25 @@
   "email": "manager@vibbra.com.br",
   "login": "manager"
 }
+## (POST) api/v1/users - 400 (campos obrigatorios ausentes ou invalidos)
+{
+  "message": "The Name field is required. The Email field is not a valid e-mail address."
+}
+
+## (POST) api/v1/users - 400 (senha ausente na criacao)
+{
+  "message": "The password field is required."
+}
+
+## (POST|PUT) api/v1/users - 409 (login ou e-mail ja usado por outro usuario; nao diferencia maiusculas de minusculas)
+{
+  "message": "Login already in use"
+}
+{
+  "message": "Email already in use"
+}
+
+## (PUT) api/v1/users/{ID} - 400 (password informada em branco; omitir o campo mantem a senha atual)
+{
+  "message": "The Password field cannot be blank."
+}

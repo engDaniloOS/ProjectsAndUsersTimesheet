@@ -9,5 +9,7 @@ namespace TimeSheet.DataProviders.Repository
         Task<User> GetUserById(int userId);
         Task<User> SaveNewUser(User user);
         Task<User> EditUser(int userId, User user);
+        Task<bool> ExistsLogin(string login, int? ignoreUserId);
+        Task<bool> ExistsEmail(string email, int? ignoreUserId);
     }
 }
