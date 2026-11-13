@@ -119,10 +119,18 @@ Efeitos sobre as seções anteriores: o "Fora do escopo atual" da seção 2 (tot
 | N2 | O "dia" do limite de 8h é a data de `started_at`? Lançamento que cruza a meia-noite conta inteiro no dia de início ou dividido? | Algoritmo da regra D3 |
 | N3 | Quais totais/relatórios (por projeto, usuário, período) e em qual formato (JSON/CSV)? | Novos endpoints e DTOs |
 | N4 | Quais filtros, paginação padrão e ordenação nas listagens? | Contrato das listagens |
-| N5 | A unicidade de login/e-mail diferencia maiúsculas/minúsculas? O `admin` seed segue a regra? | Índices e comparação |
+| ~~N5~~ | *Resolvida (D12, revisada em 2026-11-12): a unicidade **não** diferencia maiúsculas/minúsculas; o `admin` segue a regra* | — |
 | N6 | Quem pode excluir? Pode excluir a si próprio ou o `admin`? O que ocorre com a `Credential` do usuário excluído (hoje a FK `User→Credentials` é `Restrict`, deixaria registro órfão)? | Regra de exclusão (D5) |
 | N7 | Na edição de horas, revalidar vínculo usuário↔projeto, sobreposição e limite diário? | Consistência com a criação |
 
 ## 12. Premissas e hipóteses vigentes
 - **Hipótese**: o domínio `vibbra.com.br` do admin e o formato do README indicam desafio de processo seletivo (compatível com D1; não confirmado no código).
 - **Hipótese**: dado D6, no Docker o "horário local" será o fuso do container (normalmente UTC).
+
+### 10.1 Decisões adicionais (2026-11-12, planejamento da US2)
+
+| # | Tema | Decisão |
+|---|---|---|
+| D11 | Edição de usuário | `password` é **opcional** no `PUT /users/{ID}` (omitida/`null` mantém a senha atual; em branco é rejeitada). Na criação continua obrigatória |
+| D12 | Unicidade | Login e e-mail únicos **sem diferenciar maiúsculas de minúsculas** (`Admin` = `admin`; `A@x.com` = `a@x.com`). *Revisa a decisão anterior do mesmo dia, que era case-sensitive.* A autenticação não muda (já era insensível por collation) |
+| D13 | Migração de dados | A migração **limpa sozinha** duplicados e nulos antes de criar os índices únicos (detalhes em `specs/001-timesheet-api/plan-us2-gerenciar-usuarios.md`) |

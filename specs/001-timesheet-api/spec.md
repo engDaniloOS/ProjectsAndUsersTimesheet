@@ -42,7 +42,8 @@ Um usuário autenticado cadastra, consulta e edita usuários (nome, e-mail, logi
 2. **Given** um usuário existente, **When** é consultado, **Then** retorna seus dados e a lista de projetos.
 3. **Given** um id inexistente, **When** consulta ou edita, **Then** recebe "não encontrado".
 4. **Given** um login ou e-mail já usado por outro usuário, **When** cria ou edita um usuário com esse valor, **Then** a operação é rejeitada com conflito *(PLANEJADO — hoje não é verificado)*.
-5. **Given** campos obrigatórios ausentes, **When** cria/edita, **Then** recebe erro de validação com mensagem clara *(PLANEJADO — hoje o resultado depende de exceção)*.
+5. **Given** `name`, `email` ou `login` ausentes (ou `email` malformado), ou `password` ausente **na criação**, **When** cria/edita, **Then** recebe erro de validação com mensagem clara *(PLANEJADO — hoje o resultado depende de exceção)*.
+6. **Given** um usuário existente, **When** edita sem informar `password`, **Then** a senha atual é mantida; se `password` for informada em branco, a edição é rejeitada *(PLANEJADO — hoje a senha é sobrescrita por `null`)*.
 
 ---
 
@@ -154,7 +155,7 @@ Um usuário autenticado lista os usuários cadastrados, com filtros e paginaçã
 - Como o sistema trata um lançamento que atravessa a meia-noite no limite diário de 8h? [NEEDS CLARIFICATION: N2]
 - O que acontece ao editar o lançamento para outro projeto do qual o usuário não participa?
 - O que acontece ao remover um usuário da equipe do projeto (edição do projeto) quando ele já tem horas lançadas nele? *(hoje as horas permanecem; regra desejada não definida)*
-- Login e e-mail diferenciam maiúsculas de minúsculas na unicidade? [NEEDS CLARIFICATION: N5]
+- Login ou e-mail que diferem só em maiúsculas/minúsculas (ex.: `Admin` e `admin`)? *(decidido, N5/D12: são o **mesmo** valor — a unicidade **não** diferencia maiúsculas de minúsculas; `Admin` conflita com `admin`)*
 - O que acontece se a aplicação reiniciar? *(hoje o usuário `admin` é recriado a cada inicialização; com unicidade de login isso precisa ser resolvido)*
 - O que acontece com o token ao expirar no meio de uma operação? *(acesso negado; sem renovação)*
 - Qual o comportamento com horário local do servidor em ambiente de container, tipicamente UTC? (decisão D6 aceita; registrar como limitação)
@@ -173,8 +174,8 @@ Um usuário autenticado lista os usuários cadastrados, com filtros e paginaçã
 **Usuários e projetos**
 - **FR-004**: O sistema MUST permitir criar, consultar por id e editar usuários, e consultar os projetos de um usuário. **[EXISTE]**
 - **FR-005**: O sistema MUST permitir criar, listar, consultar e editar projetos, vinculando usuários; a edição substitui a lista de usuários. **[EXISTE]**
-- **FR-005a**: O sistema MUST garantir login único e e-mail único entre usuários, rejeitando duplicidade com conflito (D7). **[PLANEJADO]**
-- **FR-005b**: O sistema MUST validar entradas obrigatórias e ids referenciados, respondendo com erro de validação e mensagem clara, sem depender de falhas internas. **[PLANEJADO]**
+- **FR-005a**: O sistema MUST garantir login único e e-mail único entre usuários, **sem diferenciar maiúsculas de minúsculas**, rejeitando duplicidade com conflito (D7, D12). **[PLANEJADO]**
+- **FR-005b**: O sistema MUST validar entradas obrigatórias (`password` obrigatória só na criação; opcional na edição, D11) e ids referenciados, respondendo com erro de validação e mensagem clara, sem depender de falhas internas. **[PLANEJADO]**
 - **FR-005c**: O sistema MUST criar o usuário `admin` inicial apenas se ainda não existir. **[PLANEJADO]**
 
 **Lançamento de horas**
@@ -245,6 +246,6 @@ Um usuário autenticado lista os usuários cadastrados, com filtros e paginaçã
 | N2 | "Dia" do limite de 8h; intervalo que cruza a meia-noite | FR-010 |
 | N3 | Totais e relatórios: formato e filtros | FR-014, US6 |
 | N4 | Filtros, paginação e ordenação das listagens | FR-012, FR-017 |
-| N5 | Unicidade sensível a maiúsculas/minúsculas; `admin` incluído? | FR-005a |
+| ~~N5~~ | *Resolvida (D12): a unicidade não diferencia maiúsculas/minúsculas; `admin` segue a regra* | — |
 | N6 | Quem pode excluir; credencial órfã; excluir a si/`admin` | FR-015, FR-016 |
 | N7 | Edição de horas revalida todas as regras? | FR-013 |

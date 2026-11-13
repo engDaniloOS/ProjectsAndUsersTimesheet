@@ -288,7 +288,16 @@ Decisões de 2026-11-11 (origem: entrevista; ver [Objetivo §10](objetivo-do-sis
 |---|---|
 | Q1 | Migrar junto para *minimal hosting* ou manter `Program`/`Startup`? |
 | Q2 | O EF Core 10 exige regerar a migração `Initial`, ou apenas atualizar o snapshot? (**Hipótese**: ajustar o snapshot basta; verificar na migração) |
-| Q3 | Como aplicar o seed idempotente (T3 exige) sem violar a decisão T7 de não alterar segurança? |
-| Q4 | Framework de testes e cobertura mínima |
+| Q3 | ~~Como aplicar o seed idempotente sem violar T7?~~ *Resolvida (§13.4): idempotência não é mudança de segurança; `admin/admin` permanece* |
+| Q4 | ~~Framework de testes~~ *Resolvida (§13.4): xUnit + NSubstitute + SQLite in-memory; sem testes dependentes de Docker* |
 | Q5 | `Console.WriteLine` permanece ou passa a `ILogger`? |
 | Q6 | Banco em arquivo (LocalDB, só Windows) continua suportado após a migração? |
+
+### 13.4 Decisões adicionais (2026-11-12, planejamento da US2)
+
+| # | Decisão |
+|---|---|
+| T9 | Testes: **xUnit** + **NSubstitute** (evita o histórico de controvérsia do Moq) + asserções nativas do xUnit (sem FluentAssertions, licença comercial na v8) |
+| T10 | Testes de repositório com **SQLite in-memory**; **não** haverá testes automatizados dependentes de SQL Server em container (decisão do responsável). Partes específicas do SQL Server (collation, códigos de erro 2601/2627, migração) têm **checklist de verificação manual** |
+| T11 | Unicidade com collation **case-insensitive explícita** (`SQL_Latin1_General_CP1_CI_AS`) em `Credentials.Login` e `User.Email`, aplicada por propriedade só quando o provedor é SQL Server (não depende da collation padrão do servidor). Testes SQLite usam `NOCASE` via contexto derivado |
+| T12 | A migração de unicidade faz limpeza automática de dados (mescla duplicados, preenche nulos) |
