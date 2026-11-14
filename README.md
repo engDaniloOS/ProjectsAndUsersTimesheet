@@ -107,3 +107,4 @@ Para adicionar uma funcionalidade: use case em `Domain/UseCases` → método no 
 ## Documentação técnica detalhada
 * [Arquitetura do Sistema](docs/arquitetura-do-sistema.md)
 * [Objetivo do Sistema](docs/objetivo-do-sistema.md)
+* [Testes](docs/testes.md) (testes automatizados, coleção do Insomnia em `docs/insomnia/` e verificação manual)

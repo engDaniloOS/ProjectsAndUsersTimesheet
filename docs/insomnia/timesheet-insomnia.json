@@ -1,0 +1,1104 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-11-13T00:00:00.000Z",
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "wrk_timesheet",
+      "_type": "workspace",
+      "parentId": null,
+      "name": "TimeSheet API",
+      "description": "Requests e testes da API TimeSheet. Rode a pasta/coleção na ordem; as requests encadeiam dados das anteriores.",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_timesheet_base",
+      "_type": "environment",
+      "parentId": "wrk_timesheet",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:5000",
+        "admin_login": "admin",
+        "admin_password": "admin"
+      },
+      "dataPropertyOrder": {
+        "&": [
+          "base_url",
+          "admin_login",
+          "admin_password"
+        ]
+      },
+      "isPrivate": false,
+      "metaSortKey": 1
+    },
+    {
+      "_id": "uts_timesheet",
+      "_type": "unit_test_suite",
+      "parentId": "wrk_timesheet",
+      "name": "TimeSheet API",
+      "metaSortKey": 1
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_timesheet",
+      "name": "1. Autenticação",
+      "metaSortKey": 1000,
+      "environment": {}
+    },
+    {
+      "_id": "fld_users",
+      "_type": "request_group",
+      "parentId": "wrk_timesheet",
+      "name": "2. Usuários",
+      "metaSortKey": 2000,
+      "environment": {}
+    },
+    {
+      "_id": "fld_projects",
+      "_type": "request_group",
+      "parentId": "wrk_timesheet",
+      "name": "3. Projetos",
+      "metaSortKey": 3000,
+      "environment": {}
+    },
+    {
+      "_id": "fld_times",
+      "_type": "request_group",
+      "parentId": "wrk_timesheet",
+      "name": "4. Horas",
+      "metaSortKey": 4000,
+      "environment": {}
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login (admin)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/authenticate",
+      "description": "Guarda o token usado pelas demais requests (Bearer).",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 100,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"login\": \"{{ _.admin_login }}\",\n  \"password\": \"{{ _.admin_password }}\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "ut_req_login",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_login",
+      "name": "Login (admin) -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.token).to.be.a(\"string\");\n  expect(body.user.login).to.equal(\"admin\");\n",
+      "metaSortKey": 100
+    },
+    {
+      "_id": "req_login_invalid",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login com senha inválida",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/authenticate",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 200,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"login\": \"admin\",\n  \"password\": \"senha-errada\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "ut_req_login_invalid",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_login_invalid",
+      "name": "Login com senha inválida -> 401",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(401);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.equal(\"Invalid credentials\");\n",
+      "metaSortKey": 200
+    },
+    {
+      "_id": "req_login_uppercase",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login com ADMIN em maiúsculas (não diferencia caixa)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/authenticate",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 300,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"login\": \"ADMIN\",\n  \"password\": \"{{ _.admin_password }}\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "ut_req_login_uppercase",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_login_uppercase",
+      "name": "Login com ADMIN em maiúsculas (não diferencia caixa) -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.token).to.be.a(\"string\");\n",
+      "metaSortKey": 300
+    },
+    {
+      "_id": "req_login_missing",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login sem campos (400 com message)",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/authenticate",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 400,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "ut_req_login_missing",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_login_missing",
+      "name": "Login sem campos (400 com message) -> 400",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(400);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.be.a(\"string\");\n",
+      "metaSortKey": 400
+    },
+    {
+      "_id": "req_no_token",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Endpoint protegido sem token",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/users/1",
+      "description": "",
+      "headers": [],
+      "parameters": [],
+      "metaSortKey": 500,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "authentication": {}
+    },
+    {
+      "_id": "ut_req_no_token",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_no_token",
+      "name": "Endpoint protegido sem token -> 401",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(401);\n",
+      "metaSortKey": 500
+    },
+    {
+      "_id": "req_user_create",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Criar usuário",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "description": "Gera login e e-mail únicos a cada execução. Os dados criados são reutilizados pelas requests seguintes.",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 600,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Insomnia User\",\n  \"email\": \"ins{% now 'millis', '' %}@example.com\",\n  \"login\": \"ins{% now 'millis', '' %}\",\n  \"password\": \"secret123\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_create",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_create",
+      "name": "Criar usuário -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.user_id).to.be.a(\"number\");\n  expect(body.password).to.equal(undefined);\n",
+      "metaSortKey": 600
+    },
+    {
+      "_id": "req_user_dup_login_admin",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Criar com login duplicado (ADMIN) -> 409",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 700,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Dup\",\n  \"email\": \"dup{% now 'millis', '' %}@example.com\",\n  \"login\": \"ADMIN\",\n  \"password\": \"x\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_dup_login_admin",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_dup_login_admin",
+      "name": "Criar com login duplicado (ADMIN) -> 409",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(409);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.equal(\"Login already in use\");\n",
+      "metaSortKey": 700
+    },
+    {
+      "_id": "req_user_dup_login_same",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Criar com o login do usuário criado -> 409",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 800,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Dup\",\n  \"email\": \"dup{% now 'millis', '' %}@example.com\",\n  \"login\": \"{% response 'body', 'req_user_create', 'b64::JC5sb2dpbg==::46b', 'no-history', 60 %}\",\n  \"password\": \"x\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_dup_login_same",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_dup_login_same",
+      "name": "Criar com o login do usuário criado -> 409",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(409);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.equal(\"Login already in use\");\n",
+      "metaSortKey": 800
+    },
+    {
+      "_id": "req_user_dup_email",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Criar com e-mail duplicado (outra caixa) -> 409",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 900,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Dup\",\n  \"email\": \"ADMIN@VIBBRA.COM.BR\",\n  \"login\": \"dup{% now 'millis', '' %}\",\n  \"password\": \"x\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_dup_email",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_dup_email",
+      "name": "Criar com e-mail duplicado (outra caixa) -> 409",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(409);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.equal(\"Email already in use\");\n",
+      "metaSortKey": 900
+    },
+    {
+      "_id": "req_user_create_empty",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Criar sem campos -> 400",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 1000,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_create_empty",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_create_empty",
+      "name": "Criar sem campos -> 400",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(400);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.include(\"required\");\n",
+      "metaSortKey": 1000
+    },
+    {
+      "_id": "req_user_create_bad_email",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Criar com e-mail inválido -> 400",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 1100,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"X\",\n  \"email\": \"nao-e-email\",\n  \"login\": \"x{% now 'millis', '' %}\",\n  \"password\": \"x\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_create_bad_email",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_create_bad_email",
+      "name": "Criar com e-mail inválido -> 400",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(400);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.include(\"e-mail\");\n",
+      "metaSortKey": 1100
+    },
+    {
+      "_id": "req_user_create_no_password",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Criar sem senha -> 400",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 1200,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"X\",\n  \"email\": \"x{% now 'millis', '' %}@example.com\",\n  \"login\": \"x{% now 'millis', '' %}\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_create_no_password",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_create_no_password",
+      "name": "Criar sem senha -> 400",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(400);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.equal(\"The password field is required.\");\n",
+      "metaSortKey": 1200
+    },
+    {
+      "_id": "req_user_create_blank_password",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Criar com senha em branco -> 400",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/users",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 1300,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"X\",\n  \"email\": \"x{% now 'millis', '' %}@example.com\",\n  \"login\": \"x{% now 'millis', '' %}\",\n  \"password\": \"   \"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_create_blank_password",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_create_blank_password",
+      "name": "Criar com senha em branco -> 400",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(400);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.equal(\"The Password field cannot be blank.\");\n",
+      "metaSortKey": 1300
+    },
+    {
+      "_id": "req_user_get",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Consultar usuário",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/users/{% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [],
+      "parameters": [],
+      "metaSortKey": 1400,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_get",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_get",
+      "name": "Consultar usuário -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.projects).to.be.an(\"array\");\n",
+      "metaSortKey": 1400
+    },
+    {
+      "_id": "req_user_get_404",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Consultar usuário inexistente -> 404",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/users/999999",
+      "description": "",
+      "headers": [],
+      "parameters": [],
+      "metaSortKey": 1500,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_get_404",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_get_404",
+      "name": "Consultar usuário inexistente -> 404",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(404);\n",
+      "metaSortKey": 1500
+    },
+    {
+      "_id": "req_user_put_no_password",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Editar sem senha (mantém a atual)",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/users/{% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 1600,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Insomnia User Editado\",\n  \"email\": \"{% response 'body', 'req_user_create', 'b64::JC5lbWFpbA==::46b', 'no-history', 60 %}\",\n  \"login\": \"{% response 'body', 'req_user_create', 'b64::JC5sb2dpbg==::46b', 'no-history', 60 %}\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_put_no_password",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_put_no_password",
+      "name": "Editar sem senha (mantém a atual) -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.name).to.equal(\"Insomnia User Editado\");\n",
+      "metaSortKey": 1600
+    },
+    {
+      "_id": "req_user_login_after_put",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Login com a senha antiga após editar sem senha",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/authenticate",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 1700,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"login\": \"{% response 'body', 'req_user_create', 'b64::JC5sb2dpbg==::46b', 'no-history', 60 %}\",\n  \"password\": \"secret123\"\n}"
+      },
+      "authentication": {}
+    },
+    {
+      "_id": "ut_req_user_login_after_put",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_login_after_put",
+      "name": "Login com a senha antiga após editar sem senha -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.token).to.be.a(\"string\");\n",
+      "metaSortKey": 1700
+    },
+    {
+      "_id": "req_user_put_blank_password",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Editar com senha em branco -> 400",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/users/{% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 1800,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"X\",\n  \"email\": \"{% response 'body', 'req_user_create', 'b64::JC5lbWFpbA==::46b', 'no-history', 60 %}\",\n  \"login\": \"{% response 'body', 'req_user_create', 'b64::JC5sb2dpbg==::46b', 'no-history', 60 %}\",\n  \"password\": \"\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_put_blank_password",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_put_blank_password",
+      "name": "Editar com senha em branco -> 400",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(400);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.equal(\"The Password field cannot be blank.\");\n",
+      "metaSortKey": 1800
+    },
+    {
+      "_id": "req_user_put_conflict",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Editar com login de outro usuário -> 409",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/users/{% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 1900,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"X\",\n  \"email\": \"{% response 'body', 'req_user_create', 'b64::JC5lbWFpbA==::46b', 'no-history', 60 %}\",\n  \"login\": \"Admin\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_put_conflict",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_put_conflict",
+      "name": "Editar com login de outro usuário -> 409",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(409);\nconst body = JSON.parse(response.data);\n  expect(body.message).to.equal(\"Login already in use\");\n",
+      "metaSortKey": 1900
+    },
+    {
+      "_id": "req_user_put_new_password",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Editar trocando a senha",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/users/{% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 2000,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Insomnia User Editado\",\n  \"email\": \"{% response 'body', 'req_user_create', 'b64::JC5lbWFpbA==::46b', 'no-history', 60 %}\",\n  \"login\": \"{% response 'body', 'req_user_create', 'b64::JC5sb2dpbg==::46b', 'no-history', 60 %}\",\n  \"password\": \"secret456\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_put_new_password",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_put_new_password",
+      "name": "Editar trocando a senha -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\n",
+      "metaSortKey": 2000
+    },
+    {
+      "_id": "req_user_put_404",
+      "_type": "request",
+      "parentId": "fld_users",
+      "name": "Editar usuário inexistente -> 404",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/users/999999",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 2100,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"X\",\n  \"email\": \"admin@vibbra.com.br\",\n  \"login\": \"admin\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_user_put_404",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_user_put_404",
+      "name": "Editar usuário inexistente -> 404",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(404);\n",
+      "metaSortKey": 2100
+    },
+    {
+      "_id": "req_project_create",
+      "_type": "request",
+      "parentId": "fld_projects",
+      "name": "Criar projeto",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/projects",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 2200,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Projeto Insomnia {% now 'millis', '' %}\",\n  \"description\": \"Criado pela coleção do Insomnia\",\n  \"user_id\": [{% response 'body', 'req_login', 'b64::JC51c2VyLnVzZXJfaWQ=::46b', 'no-history', 60 %}, {% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %}]\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_project_create",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_project_create",
+      "name": "Criar projeto -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.project_id).to.be.a(\"number\");\n  expect(body.users).to.have.length(2);\n",
+      "metaSortKey": 2200
+    },
+    {
+      "_id": "req_projects_list",
+      "_type": "request",
+      "parentId": "fld_projects",
+      "name": "Listar projetos",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/projects",
+      "description": "",
+      "headers": [],
+      "parameters": [],
+      "metaSortKey": 2300,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_projects_list",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_projects_list",
+      "name": "Listar projetos -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body).to.be.an(\"array\");\n",
+      "metaSortKey": 2300
+    },
+    {
+      "_id": "req_project_get",
+      "_type": "request",
+      "parentId": "fld_projects",
+      "name": "Consultar projeto",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/projects/{% response 'body', 'req_project_create', 'b64::JC5wcm9qZWN0X2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [],
+      "parameters": [],
+      "metaSortKey": 2400,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_project_get",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_project_get",
+      "name": "Consultar projeto -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\n",
+      "metaSortKey": 2400
+    },
+    {
+      "_id": "req_project_get_404",
+      "_type": "request",
+      "parentId": "fld_projects",
+      "name": "Consultar projeto inexistente -> 404",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/projects/999999",
+      "description": "",
+      "headers": [],
+      "parameters": [],
+      "metaSortKey": 2500,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_project_get_404",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_project_get_404",
+      "name": "Consultar projeto inexistente -> 404",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(404);\n",
+      "metaSortKey": 2500
+    },
+    {
+      "_id": "req_project_put",
+      "_type": "request",
+      "parentId": "fld_projects",
+      "name": "Editar projeto (substitui a equipe)",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/projects/{% response 'body', 'req_project_create', 'b64::JC5wcm9qZWN0X2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 2600,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Projeto Insomnia Editado\",\n  \"description\": \"Editado\",\n  \"user_id\": [{% response 'body', 'req_login', 'b64::JC51c2VyLnVzZXJfaWQ=::46b', 'no-history', 60 %}, {% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %}]\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_project_put",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_project_put",
+      "name": "Editar projeto (substitui a equipe) -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.title).to.equal(\"Projeto Insomnia Editado\");\n",
+      "metaSortKey": 2600
+    },
+    {
+      "_id": "req_time_create",
+      "_type": "request",
+      "parentId": "fld_times",
+      "name": "Lançar horas",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/times",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 2700,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"project_id\": {% response 'body', 'req_project_create', 'b64::JC5wcm9qZWN0X2lk::46b', 'no-history', 60 %},\n  \"user_id\": {% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %},\n  \"started_at\": \"2026-01-10T08:00:00\",\n  \"ended_at\": \"2026-01-10T09:00:00\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_time_create",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_time_create",
+      "name": "Lançar horas -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.time_id).to.be.a(\"number\");\n",
+      "metaSortKey": 2700
+    },
+    {
+      "_id": "req_time_user_not_in_project",
+      "_type": "request",
+      "parentId": "fld_times",
+      "name": "Lançar horas para usuário fora do projeto -> 404",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/v1/times",
+      "description": "Comportamento atual: usuário/projeto inválido responde 404 (ver spec FR-006).",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 2800,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"project_id\": {% response 'body', 'req_project_create', 'b64::JC5wcm9qZWN0X2lk::46b', 'no-history', 60 %},\n  \"user_id\": 999999,\n  \"started_at\": \"2026-01-10T08:00:00\",\n  \"ended_at\": \"2026-01-10T09:00:00\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_time_user_not_in_project",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_time_user_not_in_project",
+      "name": "Lançar horas para usuário fora do projeto -> 404",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(404);\n",
+      "metaSortKey": 2800
+    },
+    {
+      "_id": "req_times_by_project",
+      "_type": "request",
+      "parentId": "fld_times",
+      "name": "Listar horas do projeto",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/v1/times/{% response 'body', 'req_project_create', 'b64::JC5wcm9qZWN0X2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [],
+      "parameters": [],
+      "metaSortKey": 2900,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_times_by_project",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_times_by_project",
+      "name": "Listar horas do projeto -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\nconst body = JSON.parse(response.data);\n  expect(body.time).to.be.an(\"array\");\n",
+      "metaSortKey": 2900
+    },
+    {
+      "_id": "req_time_put",
+      "_type": "request",
+      "parentId": "fld_times",
+      "name": "Editar lançamento",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/v1/times/{% response 'body', 'req_time_create', 'b64::JC50aW1lX2lk::46b', 'no-history', 60 %}",
+      "description": "",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "parameters": [],
+      "metaSortKey": 3000,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingFollowRedirects": "global",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"project_id\": {% response 'body', 'req_project_create', 'b64::JC5wcm9qZWN0X2lk::46b', 'no-history', 60 %},\n  \"user_id\": {% response 'body', 'req_user_create', 'b64::JC51c2VyX2lk::46b', 'no-history', 60 %},\n  \"started_at\": \"2026-01-10T08:00:00\",\n  \"ended_at\": \"2026-01-10T10:00:00\"\n}"
+      },
+      "authentication": {
+        "type": "bearer",
+        "token": "{% response 'body', 'req_login', 'b64::JC50b2tlbg==::46b', 'no-history', 60 %}"
+      }
+    },
+    {
+      "_id": "ut_req_time_put",
+      "_type": "unit_test",
+      "parentId": "uts_timesheet",
+      "requestId": "req_time_put",
+      "name": "Editar lançamento -> 200",
+      "code": "const response = await insomnia.send();\nexpect(response.status).to.equal(200);\n",
+      "metaSortKey": 3000
+    }
+  ]
+}
